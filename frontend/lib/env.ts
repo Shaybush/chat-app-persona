@@ -56,7 +56,7 @@ export const isTest = () => env.NODE_ENV === 'test'
 export const CONFIG = {
     api: {
         timeout: env.API_TIMEOUT,
-        baseUrl: env.API_URL || '/api',
+        baseUrl: env.API_URL || 'http://localhost:5001/api',
     },
     chat: {
         maxMessageLength: env.MAX_MESSAGE_LENGTH,

@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { chatAPI, mockAPI } from '@/lib/api'
+import { chatAPI } from '@/lib/api'
 import { useLocalStorage } from './use-local-storage'
 import { CONFIG } from '@/lib/env'
 import type {
@@ -95,18 +95,8 @@ export function useChat(personaId: string): UseChatReturn {
                 chatHistory: currentMessages,
             }
 
-            // Try to send to real API first, fall back to mock
-            let response
-            try {
-                // In a real app with backend, use:
-                // response = await chatAPI.sendMessage(request)
-
-                // For now, use mock API
-                response = await mockAPI.sendMessage(request)
-            } catch (apiError) {
-                console.warn('API unavailable, using mock response')
-                response = await mockAPI.sendMessage(request)
-            }
+            // Send to real API
+            const response = await chatAPI.sendMessage(request)
 
             // Only update state if component is still mounted
             if (!isMountedRef.current) return
@@ -139,7 +129,7 @@ export function useChat(personaId: string): UseChatReturn {
                 setIsLoading(false)
             }
         }
-    }, [personaId, addMessage]) // Clean dependencies - no chatHistory or messages
+    }, [personaId, addMessage])
 
     // Clear messages for current persona
     const clearMessages = useCallback(() => {

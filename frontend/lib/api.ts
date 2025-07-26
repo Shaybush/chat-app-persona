@@ -118,9 +118,39 @@ class ApiClient {
                 data,
             })
 
-            return {
-                success: true,
-                data: response.data,
+            // Handle server response format: { success: boolean, data: T, error?: string }
+            const serverResponse = response.data
+
+            // Check if response has the expected format
+            if (typeof serverResponse === 'object' && serverResponse !== null) {
+                if ('success' in serverResponse) {
+                    // Standard API response format
+                    if (serverResponse.success) {
+                        return {
+                            success: true,
+                            data: serverResponse.data,
+                        }
+                    } else {
+                        return {
+                            success: false,
+                            error: serverResponse.error || 'Server returned error',
+                            data: undefined as T,
+                        }
+                    }
+                } else {
+                    // Legacy/direct response format - treat as successful data
+                    return {
+                        success: true,
+                        data: serverResponse as T,
+                    }
+                }
+            } else {
+                // Unexpected response format
+                return {
+                    success: false,
+                    error: 'Unexpected response format from server',
+                    data: undefined as T,
+                }
             }
         } catch (error) {
             return this.handleError<T>(error as AxiosError)
@@ -158,7 +188,13 @@ class ApiClient {
     }
 
     // Health check
-    async healthCheck(): Promise<APIResponse<{ status: string; timestamp: string }>> {
+    async healthCheck(): Promise<APIResponse<{
+        status: string;
+        timestamp: string;
+        uptime: number;
+        memoryUsage: NodeJS.MemoryUsage;
+        environment: string;
+    }>> {
         return this.request('GET', '/health')
     }
 }
@@ -182,59 +218,6 @@ export const personaAPI = {
 
 export const systemAPI = {
     healthCheck: apiClient.healthCheck.bind(apiClient),
-}
-
-// Mock functions for development (when no backend is available)
-export const mockAPI = {
-    async sendMessage(request: SendMessageRequest): Promise<APIResponse<SendMessageResponse>> {
-        // Simulate network delay
-        await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000))
-
-        // Mock response based on persona
-        const responses = {
-            yoda: [
-                "Hmm, interesting this is. Much to learn, you still have.",
-                "Patience, young one. The Force will guide you.",
-                "Do or do not, there is no try.",
-                "Strong with the Force, you are becoming.",
-            ],
-            'steve-jobs': [
-                "That's exactly the kind of thinking that changes everything.",
-                "Innovation distinguishes between a leader and a follower.",
-                "Stay hungry, stay foolish.",
-                "Think different. That's what makes all the difference.",
-            ],
-            grandma: [
-                "Oh sweetie, that reminds me of when you were little!",
-                "You know, dear, everything happens for a reason.",
-                "Have you been eating enough? You look thin in your photos!",
-                "I'm so proud of you, my dear. You're doing wonderfully.",
-            ],
-        }
-
-        const personaResponses = responses[request.personaId as keyof typeof responses] || [
-            "That's very interesting! Tell me more.",
-            "I understand what you're saying.",
-            "What do you think about that?",
-            "That's a great point!",
-        ]
-
-        const randomResponse = personaResponses[Math.floor(Math.random() * personaResponses.length)]
-
-        return {
-            success: true,
-            data: {
-                message: {
-                    id: Date.now().toString(),
-                    content: randomResponse,
-                    isUser: false,
-                    timestamp: Date.now(),
-                    personaId: request.personaId,
-                },
-                success: true,
-            },
-        }
-    },
 }
 
 export default apiClient 

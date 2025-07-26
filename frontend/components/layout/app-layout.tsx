@@ -1,100 +1,213 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Loader2, AlertCircle, CheckCircle } from "lucide-react";
-import { ThemeProvider } from "@/components/theme-provider";
-import { Toaster } from "@/components/ui/sonner";
+import { useState, useEffect, ReactNode } from "react";
+import { AlertCircle, CheckCircle, WifiOff, AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import type { BaseComponentProps } from "@/types";
+import { Button } from "@/components/ui/button";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/toaster";
+import { systemAPI } from "@/lib/api";
+import { AdvancedLoadingDots } from "@/components/ui/advanced-loading-dots";
 
-interface AppLayoutProps extends BaseComponentProps {
+type HealthStatus = "unknown" | "healthy" | "error";
+
+interface AppLayoutProps {
+  children: ReactNode;
   title?: string;
   description?: string;
+  error?: string | null;
   showHeader?: boolean;
   showFooter?: boolean;
-  loading?: boolean;
-  error?: string | null;
 }
 
-interface HeaderProps {
-  title: string;
-  description?: string;
-}
+export default function AppLayout({
+  children,
+  title = "Chat App",
+  description = "AI-powered chat application",
+  error = null,
+  showHeader = true,
+  showFooter = true,
+}: AppLayoutProps) {
+  const [health, setHealth] = useState<HealthStatus>("unknown");
+  const [isOnline, setIsOnline] = useState(true);
 
-function Header({ title, description }: HeaderProps) {
-  return (
-    <header className="border-b bg-card px-6 py-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">{title}</h1>
-          {description && (
-            <p className="text-sm text-muted-foreground mt-1">{description}</p>
-          )}
-        </div>
-
-        {/* Add optional header actions here */}
-        <div className="flex items-center gap-2">
-          {/* Health indicator */}
-          <HealthIndicator />
-        </div>
-      </div>
-    </header>
-  );
-}
-
-function Footer() {
-  return (
-    <footer className="border-t bg-card px-6 py-4 text-center text-sm text-muted-foreground">
-      <p>
-        © {new Date().getFullYear()} Persona Chat. Built with Next.js,
-        TypeScript, and Tailwind CSS.
-      </p>
-    </footer>
-  );
-}
-
-function HealthIndicator() {
-  const [health, setHealth] = useState<"unknown" | "healthy" | "error">(
-    "unknown"
-  );
-
+  // Health monitoring
   useEffect(() => {
-    // Check API health on component mount
     const checkHealth = async () => {
       try {
-        const response = await fetch("/api/health");
-        if (response.ok) {
+        const response = await systemAPI.healthCheck();
+        if (response.success) {
           setHealth("healthy");
         } else {
           setHealth("error");
         }
-      } catch {
+      } catch (error) {
+        console.error("Health check failed:", error);
         setHealth("error");
       }
     };
 
+    // Initial check
     checkHealth();
+
+    // Set up periodic health checks
+    const interval = setInterval(checkHealth, 30000); // Every 30 seconds
+
+    return () => clearInterval(interval);
   }, []);
 
+  // Network monitoring
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
+  const retryConnection = async () => {
+    setHealth("unknown");
+    try {
+      const response = await systemAPI.healthCheck();
+      if (response.success) {
+        setHealth("healthy");
+      } else {
+        setHealth("error");
+      }
+    } catch (error) {
+      setHealth("error");
+    }
+  };
+
+  return (
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+    >
+      <div className="min-h-screen bg-background flex flex-col">
+        {/* Header */}
+        {showHeader && (
+          <header className="border-b bg-card px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-xl font-semibold">{title}</h1>
+                <p className="text-sm text-muted-foreground">{description}</p>
+              </div>
+              <HealthIndicator health={health} isOnline={isOnline} />
+            </div>
+          </header>
+        )}
+
+        {/* Global Error Alert */}
+        {error && (
+          <Alert variant="destructive" className="m-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="flex items-center justify-between">
+              <span>{error}</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => window.location.reload()}
+              >
+                Retry
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Offline Alert */}
+        {!isOnline && (
+          <Alert className="m-4">
+            <WifiOff className="h-4 w-4" />
+            <AlertDescription>
+              You're currently offline. Some features may not work properly.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Server Error Alert */}
+        {health === "error" && (
+          <Alert variant="destructive" className="m-4">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription className="flex items-center justify-between">
+              <span>Unable to connect to server. Please try again.</span>
+              <Button variant="outline" size="sm" onClick={retryConnection}>
+                <AdvancedLoadingDots
+                  variant="pulse"
+                  size="small"
+                  color="gray"
+                />
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Main Content */}
+        <main className="flex-1 flex flex-col overflow-hidden">{children}</main>
+
+        {/* Footer */}
+        {showFooter && (
+          <footer className="border-t bg-card px-6 py-4">
+            <div className="flex items-center justify-between text-sm text-muted-foreground">
+              <span>© 2024 Chat App. All rights reserved.</span>
+              <div className="flex items-center gap-4">
+                <span>Status: {health}</span>
+                <HealthIndicator health={health} isOnline={isOnline} />
+              </div>
+            </div>
+          </footer>
+        )}
+      </div>
+
+      {/* Toast notifications */}
+      <Toaster />
+    </ThemeProvider>
+  );
+}
+
+// Health indicator component
+function HealthIndicator({
+  health,
+  isOnline,
+}: {
+  health: HealthStatus;
+  isOnline: boolean;
+}) {
   const getIndicatorProps = () => {
+    if (!isOnline) {
+      return {
+        icon: WifiOff,
+        className: "text-red-500",
+        title: "Offline",
+      };
+    }
+
     switch (health) {
       case "healthy":
         return {
           icon: CheckCircle,
           className: "text-green-500",
-          title: "API is healthy",
+          title: "Connected",
         };
       case "error":
         return {
           icon: AlertCircle,
           className: "text-red-500",
-          title: "API has issues",
+          title: "Connection Error",
         };
+      case "unknown":
       default:
         return {
-          icon: Loader2,
-          className: "text-muted-foreground animate-spin",
-          title: "Checking API health...",
+          icon: null,
+          className: "",
+          title: "Checking connection...",
         };
     }
   };
@@ -104,7 +217,11 @@ function HealthIndicator() {
   return (
     <div className="flex items-center gap-2">
       <div title={title}>
-        <Icon size={16} className={className} />
+        {health === "unknown" ? (
+          <AdvancedLoadingDots variant="pulse" size="small" color="gray" />
+        ) : Icon ? (
+          <Icon size={16} className={className} />
+        ) : null}
       </div>
       <span className="text-xs text-muted-foreground hidden sm:inline">
         {health === "healthy"
@@ -114,127 +231,5 @@ function HealthIndicator() {
           : "Checking..."}
       </span>
     </div>
-  );
-}
-
-interface LoadingOverlayProps {
-  message?: string;
-}
-
-function LoadingOverlay({ message = "Loading..." }: LoadingOverlayProps) {
-  return (
-    <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="flex items-center gap-3 bg-card p-4 rounded-lg shadow-lg">
-        <Loader2 className="h-5 w-5 animate-spin text-primary" />
-        <span className="text-sm font-medium">{message}</span>
-      </div>
-    </div>
-  );
-}
-
-interface ErrorBoundaryState {
-  hasError: boolean;
-  error?: Error;
-}
-
-class ErrorBoundary extends React.Component<
-  { children: React.ReactNode; fallback?: React.ReactNode },
-  ErrorBoundaryState
-> {
-  constructor(props: {
-    children: React.ReactNode;
-    fallback?: React.ReactNode;
-  }) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error("Error boundary caught an error:", error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      if (this.props.fallback) {
-        return this.props.fallback;
-      }
-
-      return (
-        <div className="min-h-screen flex items-center justify-center p-4">
-          <Alert className="max-w-md">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              <div className="space-y-2">
-                <p className="font-semibold">Something went wrong</p>
-                <p className="text-sm text-muted-foreground">
-                  An unexpected error occurred. Please refresh the page to try
-                  again.
-                </p>
-                <button
-                  onClick={() => window.location.reload()}
-                  className="text-sm text-primary hover:underline"
-                >
-                  Refresh page
-                </button>
-              </div>
-            </AlertDescription>
-          </Alert>
-        </div>
-      );
-    }
-
-    return this.props.children;
-  }
-}
-
-export default function AppLayout({
-  children,
-  title = "Persona Chat",
-  description,
-  showHeader = true,
-  showFooter = false,
-  loading = false,
-  error = null,
-  className = "",
-}: AppLayoutProps) {
-  return (
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="system"
-      enableSystem
-      disableTransitionOnChange
-    >
-      <ErrorBoundary>
-        <div
-          className={`min-h-screen flex flex-col bg-background ${className}`}
-        >
-          {showHeader && <Header title={title} description={description} />}
-
-          <main className="flex-1 relative">
-            {loading && <LoadingOverlay />}
-
-            {error && (
-              <div className="p-4">
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              </div>
-            )}
-
-            {children}
-          </main>
-
-          {showFooter && <Footer />}
-
-          {/* Global toast notifications */}
-          <Toaster position="top-right" />
-        </div>
-      </ErrorBoundary>
-    </ThemeProvider>
   );
 }
