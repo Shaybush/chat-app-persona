@@ -1,0 +1,139 @@
+---
+alwaysApply: true
+---
+
+# Applies to: server/\*_/_.{ts}
+
+## ✅ Project Structure
+
+- All source code must reside under the `src/` directory.
+- Use modular folders: `routes/`, `controllers/`, `services/`, `models/`, `middlewares/`, `utils/`, `types/`, `config/`.
+
+## 🔧 TypeScript
+
+- Always use TypeScript with `"strict": true` mode.
+- Do not use `any`; prefer `unknown` with proper type refinement.
+- Type all function inputs and outputs explicitly.
+- Store global types in `src/types/`.
+
+## 🌐 API Design
+
+- Use `routes/` for defining RESTful routes via `express.Router()`.
+- Delegate route logic to `controllers/`, not inline inside the route.
+- Keep business logic inside `services/`.
+- Validate request bodies using `zod` or `joi`.
+
+## 📦 Packages
+
+Required:
+
+- express
+- cors
+- dotenv
+- axios
+- typescript
+- ts-node-dev
+
+Optional (but recommended):
+
+- zod or joi
+- helmet
+- express-rate-limit
+- express-async-handler
+
+## 🧪 Testing
+
+- Use `jest` or `vitest` for testing services and controllers.
+- Use `supertest` for integration testing routes.
+
+## 📁 Folder Responsibilities
+
+- `routes/` – REST route definitions only
+- `controllers/` – Parse request/response and delegate
+- `services/` – Business logic, reusable by multiple controllers
+- `middlewares/` – Error handling, auth, CORS, etc.
+- `models/` – ORM schemas or data layer logic
+- `utils/` – Reusable utility functions
+- `config/` – DB connection, env config
+- `types/` – Global type declarations
+
+## 🚀 Scripts
+
+- `"dev"` – Use `ts-node-dev` for local development
+- `"build"` – Compiles TS to JS
+- `"start"` – Runs compiled server
+
+## 🔐 Security
+
+- Use Helmet for HTTP headers
+- Add CORS for domain control
+- Sanitize all inputs
+- Use `.env` for sensitive keys
+
+# 🎯 Cursor Rules for Express + TypeScript Best Practices
+
+## ✅ Project Structure
+
+- All source code must reside under the `src/` directory.
+- Use modular folders: `routes/`, `controllers/`, `services/`, `models/`, `middlewares/`, `utils/`, `types/`, `config/`.
+
+## 🔧 TypeScript
+
+- Always use TypeScript with `"strict": true` mode.
+- Do not use `any`; prefer `unknown` with proper type refinement.
+- Type all function inputs and outputs explicitly.
+- Store global types in `src/types/`.
+
+## 🌐 API Design
+
+- Use `routes/` for defining RESTful routes via `express.Router()`.
+- Delegate route logic to `controllers/`, not inline inside the route.
+- Keep business logic inside `services/`.
+- Validate request bodies using `zod` or `joi`.
+
+## 📦 Packages
+
+Required:
+
+- express
+- cors
+- dotenv
+- axios
+- typescript
+- ts-node-dev
+
+Optional (but recommended):
+
+- zod or joi
+- helmet
+- express-rate-limit
+- express-async-handler
+
+## 🧪 Testing
+
+- Use `jest` or `vitest` for testing services and controllers.
+- Use `supertest` for integration testing routes.
+
+## 📁 Folder Responsibilities
+
+- `routes/` – REST route definitions only
+- `controllers/` – Parse request/response and delegate
+- `services/` – Business logic, reusable by multiple controllers
+- `middlewares/` – Error handling, auth, CORS, etc.
+- `models/` – ORM schemas or data layer logic
+- `utils/` – Reusable utility functions
+- `config/` – DB connection, env config
+- `types/` – Global type declarations
+
+## 🚀 Scripts
+
+- `"dev"` – Use `ts-node-dev` for local development
+- `"build"` – Compiles TS to JS
+- `"start"` – Runs compiled server
+
+## 🔐 Security
+
+- Use Helmet for HTTP headers
+- Add CORS for domain control
+- Sanitize all inputs
+- Use `.env` for sensitive keys

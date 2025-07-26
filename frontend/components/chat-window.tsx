@@ -1,33 +1,38 @@
-"use client"
+"use client";
 
-import { useEffect, useRef } from "react"
-import { User, Bot } from "lucide-react"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Card, CardContent } from "@/components/ui/card"
-import type { Message, Persona } from "@/app/page"
+import { useEffect, useRef } from "react";
+import { User, Bot, Loader2 } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Card, CardContent } from "@/components/ui/card";
+import type { Message, Persona } from "@/types";
 
 interface ChatWindowProps {
-  messages: Message[]
-  selectedPersona: Persona
+  messages: Message[];
+  selectedPersona: Persona;
+  isLoading?: boolean;
 }
 
-export function ChatWindow({ messages, selectedPersona }: ChatWindowProps) {
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+export function ChatWindow({
+  messages,
+  selectedPersona,
+  isLoading = false,
+}: ChatWindowProps) {
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   useEffect(() => {
-    scrollToBottom()
-  }, [messages])
+    scrollToBottom();
+  }, [messages, isLoading]); // Also scroll when loading state changes
 
   const formatTime = (timestamp: number) => {
     return new Date(timestamp).toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
-    })
-  }
+    });
+  };
 
   const getPersonaInitials = (name: string) => {
     return name
@@ -35,8 +40,8 @@ export function ChatWindow({ messages, selectedPersona }: ChatWindowProps) {
       .map((word) => word[0])
       .join("")
       .toUpperCase()
-      .slice(0, 2)
-  }
+      .slice(0, 2);
+  };
 
   if (messages.length === 0) {
     return (
@@ -46,18 +51,27 @@ export function ChatWindow({ messages, selectedPersona }: ChatWindowProps) {
             <Bot className="h-8 w-8 text-primary" />
           </div>
           <div>
-            <h3 className="text-lg font-medium">Start chatting with {selectedPersona.name}</h3>
-            <p className="text-muted-foreground text-sm mt-1">{selectedPersona.description}</p>
+            <h3 className="text-lg font-medium">
+              Start chatting with {selectedPersona.name}
+            </h3>
+            <p className="text-muted-foreground text-sm mt-1">
+              {selectedPersona.description}
+            </p>
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-4">
       {messages.map((message) => (
-        <div key={message.id} className={`flex gap-3 ${message.isUser ? "justify-end" : "justify-start"}`}>
+        <div
+          key={message.id}
+          className={`flex gap-3 ${
+            message.isUser ? "justify-end" : "justify-start"
+          }`}
+        >
           {!message.isUser && (
             <Avatar className="h-8 w-8 mt-1">
               <AvatarFallback className="text-xs bg-primary/10 text-primary">
@@ -67,11 +81,21 @@ export function ChatWindow({ messages, selectedPersona }: ChatWindowProps) {
           )}
 
           <div className={`max-w-[70%] ${message.isUser ? "order-first" : ""}`}>
-            <Card className={`${message.isUser ? "bg-primary text-primary-foreground ml-auto" : "bg-muted"}`}>
+            <Card
+              className={`${
+                message.isUser
+                  ? "bg-primary text-primary-foreground ml-auto"
+                  : "bg-muted"
+              }`}
+            >
               <CardContent className="p-3">
                 <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                 <p
-                  className={`text-xs mt-2 ${message.isUser ? "text-primary-foreground/70" : "text-muted-foreground"}`}
+                  className={`text-xs mt-2 ${
+                    message.isUser
+                      ? "text-primary-foreground/70"
+                      : "text-muted-foreground"
+                  }`}
                 >
                   {formatTime(message.timestamp)}
                 </p>
@@ -88,7 +112,30 @@ export function ChatWindow({ messages, selectedPersona }: ChatWindowProps) {
           )}
         </div>
       ))}
+
+      {/* Loading indicator when AI is responding */}
+      {isLoading && (
+        <div className="flex gap-3 justify-start">
+          <Avatar className="h-8 w-8 mt-1">
+            <AvatarFallback className="text-xs bg-primary/10 text-primary">
+              {getPersonaInitials(selectedPersona.name)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="max-w-[70%]">
+            <Card className="bg-muted">
+              <CardContent className="p-3">
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <p className="text-sm text-muted-foreground">
+                    {selectedPersona.name} is thinking...
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
       <div ref={messagesEndRef} />
     </div>
-  )
+  );
 }

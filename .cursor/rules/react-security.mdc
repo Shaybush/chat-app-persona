@@ -1,0 +1,40 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+
+# React Security Rules
+
+# Applies to: frontend/\*_/_.{jsx,tsx,ts}
+
+When working with React components:
+•⁠ ⁠Never use dangerouslySetInnerTML without proper sanitization
+•⁠ ⁠Use React's built-in XSS protections.
+•⁠ ⁠Santize props before rendering user-generated coffent
+•⁠ ⁠Avoid using refs to directly manipulate the DOM
+•⁠ ⁠Use secure state management practices
+•⁠ ⁠Implement proper authentication checks for protected routes
+•⁠ ⁠Never store sensitive information in localStorage or sessionStorage
+
+# Project Structure
+
+Follow this standard project structure for React applications:
+├── api # API service calls and configurations
+├── App.tsx # Main application component
+├── components # Reusable UI components
+├── global.d.ts # Global type declarations
+├── hooks # Custom React hooks
+├── index.css # Global styles
+├── index.html # HTML entry point
+├── main.tsx # Application entry point
+├── pages # Page components
+├── providers # Context providers
+├── public # Static assets
+├── routes.ts # Route definitions
+├── SessionManager # Authentication and session management
+├── store # State management
+├── types # TypeScript type definitions
+└── utils # Utility functions
+
+Ensure all security practices are consistently applied across this structure.
