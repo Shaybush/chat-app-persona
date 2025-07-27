@@ -5,4 +5,4 @@ dist
 /src/generated/prisma
 /prisma
 server.log
-# pnpm-lock.yaml
+pnpm-lock.yaml
