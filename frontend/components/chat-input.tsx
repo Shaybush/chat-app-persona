@@ -1,68 +1,74 @@
 "use client";
 
-import { useState, type KeyboardEvent } from "react";
-import { Send, Loader2 } from "lucide-react";
+import React, { useState, KeyboardEvent } from "react";
+import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Card } from "@/components/ui/card";
+import { AdvancedLoadingDots } from "@/components/ui/advanced-loading-dots";
 
 interface ChatInputProps {
-  onSendMessage: (message: string) => void;
+  onSendMessage: (message: string) => Promise<void>;
   disabled?: boolean;
   isLoading?: boolean;
+  placeholder?: string;
 }
 
 export function ChatInput({
   onSendMessage,
   disabled = false,
   isLoading = false,
+  placeholder = "Type your message...",
 }: ChatInputProps) {
   const [message, setMessage] = useState("");
 
-  const handleSend = () => {
-    if (message.trim() && !disabled && !isLoading) {
-      onSendMessage(message.trim());
-      setMessage("");
+  const handleSubmit = async () => {
+    if (!message.trim() || disabled || isLoading) return;
+
+    const messageToSend = message.trim();
+    setMessage(""); // Clear immediately for better UX
+
+    try {
+      await onSendMessage(messageToSend);
+    } catch (error) {
+      // Error is handled by the parent component
+      // Restore message if sending failed
+      setMessage(messageToSend);
     }
   };
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyPress = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      handleSubmit();
     }
   };
 
-  const isDisabled = disabled || isLoading || !message.trim();
-
   return (
-    <div className="border-t bg-card p-4">
-      <div className="flex gap-2 items-end">
+    <Card className="p-4 border-t">
+      <div className="flex gap-2">
         <Textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={
-            isLoading
-              ? "Waiting for response..."
-              : "Type your message... (Press Enter to send, Shift+Enter for new line)"
-          }
-          className="min-h-[60px] max-h-[120px] resize-none"
-          rows={2}
+          onKeyPress={handleKeyPress}
+          placeholder={placeholder}
           disabled={disabled || isLoading}
+          className="min-h-[20px] max-h-32 resize-none"
+          rows={1}
         />
         <Button
-          onClick={handleSend}
-          disabled={isDisabled}
+          onClick={handleSubmit}
+          disabled={!message.trim() || disabled || isLoading}
           size="icon"
-          className="h-[60px] w-[60px] shrink-0"
+          className="h-10 w-10 flex-shrink-0"
         >
           {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <AdvancedLoadingDots variant="pulse" size="small" color="gray" />
           ) : (
             <Send className="h-4 w-4" />
           )}
         </Button>
       </div>
-    </div>
+    </Card>
   );
 }

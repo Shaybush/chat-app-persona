@@ -7,6 +7,7 @@ dotenv.config();
 // Validate required environment variables
 const requiredEnvVars = [
     'OPENAI_API_KEY',
+    'DATABASE_URL',
     // Add other required env vars as needed
 ];
 
@@ -21,7 +22,8 @@ if (missingEnvVars.length > 0) {
 // Export environment variables with types
 export const env = {
     NODE_ENV: process.env.NODE_ENV || 'development',
-    PORT: parseInt(process.env.PORT || '3001', 10),
+    PORT: parseInt(process.env.PORT || '5001', 10),
+    DATABASE_URL: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/chat_project',
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
     GOOGLE_API_KEY: process.env.GOOGLE_API_KEY,
@@ -34,6 +36,7 @@ export const logEnvStatus = (): void => {
         meta: {
             NODE_ENV: env.NODE_ENV,
             PORT: env.PORT,
+            DATABASE_URL: env.DATABASE_URL ? 'Set ✅' : 'Not set ❌',
             OPENAI_API_KEY: env.OPENAI_API_KEY ? 'Set ✅' : 'Not set ❌',
             ANTHROPIC_API_KEY: env.ANTHROPIC_API_KEY ? 'Set ✅' : 'Not set ❌',
             GOOGLE_API_KEY: env.GOOGLE_API_KEY ? 'Set ✅' : 'Not set ❌',

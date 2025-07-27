@@ -18,5 +18,9 @@ export const healthCheck = (req: Request, res: Response): void => {
         }
     });
 
-    res.status(200).json(healthData);
+    // Return in standard API response format
+    res.status(200).json({
+        success: true,
+        data: healthData
+    });
 }; 

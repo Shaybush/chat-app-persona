@@ -29,7 +29,7 @@ import type { Persona, CreatePersonaRequest } from "@/types";
 
 interface PersonaSelectorProps {
   personas: Persona[];
-  selectedPersona: Persona;
+  selectedPersona: Persona | null;
   onPersonaChange: (persona: Persona) => void;
   onAddPersona: (persona: CreatePersonaRequest) => Promise<void>;
   isLoading?: boolean;
@@ -50,6 +50,9 @@ export function PersonaSelector({
   const [newPersonaDescription, setNewPersonaDescription] = useState("");
   const [newPersonaPrompt, setNewPersonaPrompt] = useState("");
   const [createError, setCreateError] = useState<string | null>(null);
+
+  // Ensure personas is always an array
+  const safePersonas = Array.isArray(personas) ? personas : [];
 
   const handleAddPersona = async () => {
     if (!newPersonaName.trim() || !newPersonaDescription.trim()) return;
@@ -177,7 +180,7 @@ export function PersonaSelector({
         </Alert>
       )}
 
-      <div className="space-y-2">
+      <div className="space-y-2 px-2 py-1 h-[calc(100vh-170px)] overflow-y-auto">
         {isLoading ? (
           // Loading skeletons
           <>
@@ -190,12 +193,12 @@ export function PersonaSelector({
               </Card>
             ))}
           </>
-        ) : (
-          personas.map((persona) => (
+        ) : safePersonas.length > 0 ? (
+          safePersonas.map((persona) => (
             <Card
               key={persona.id}
               className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
-                selectedPersona.id === persona.id
+                selectedPersona?.id === persona.id
                   ? "ring-2 ring-primary bg-primary/5"
                   : "hover:bg-accent/50"
               }`}
@@ -222,6 +225,16 @@ export function PersonaSelector({
               </CardContent>
             </Card>
           ))
+        ) : (
+          <Card className="p-4">
+            <div className="text-center text-muted-foreground">
+              <User className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">No personas available</p>
+              <p className="text-xs">
+                Create your first persona to get started
+              </p>
+            </div>
+          </Card>
         )}
       </div>
     </div>

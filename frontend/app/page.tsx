@@ -7,7 +7,7 @@ import { ChatInput } from "@/components/chat-input";
 import AppLayout from "@/components/layout/app-layout";
 import { usePersonas } from "@/hooks/use-personas";
 import { useChat } from "@/hooks/use-chat";
-import type { CreatePersonaRequest } from "@/types";
+import type { CreatePersonaRequest, Persona } from "@/types";
 
 export default function ChatPage() {
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -22,15 +22,16 @@ export default function ChatPage() {
     addPersona,
   } = usePersonas();
 
+  // Only initialize chat hook when we have a selected persona
   const {
     messages,
     isLoading: chatLoading,
     error: chatError,
     sendMessage,
-  } = useChat(selectedPersona.id);
+  } = useChat(selectedPersona?.id || "");
 
   // Handle persona change with transition effect
-  const handlePersonaChange = (persona: typeof selectedPersona) => {
+  const handlePersonaChange = (persona: Persona) => {
     setIsTransitioning(true);
     setTimeout(() => {
       selectPersona(persona);
@@ -51,6 +52,8 @@ export default function ChatPage() {
 
   // Handle sending message
   const handleSendMessage = async (message: string) => {
+    if (!selectedPersona) return;
+
     try {
       await sendMessage(message);
     } catch (error) {
@@ -65,11 +68,51 @@ export default function ChatPage() {
   // Combine errors
   const error = personasError || chatError;
 
+  // Show loading state while personas are loading
+  if (personasLoading) {
+    return (
+      <AppLayout
+        title="Persona Chat"
+        description="Chat with AI personas powered by advanced language models"
+        error={error}
+        showHeader={true}
+        showFooter={false}
+      >
+        <div className="flex flex-1 items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading personas...</p>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  // Show error state if no personas could be loaded
+  if (!selectedPersona && personas.length === 0 && !personasLoading) {
+    return (
+      <AppLayout
+        title="Persona Chat"
+        description="Chat with AI personas powered by advanced language models"
+        error={error}
+        showHeader={true}
+        showFooter={false}
+      >
+        <div className="flex flex-1 items-center justify-center">
+          <div className="text-center">
+            <p className="text-muted-foreground">
+              No personas available. Please check your connection and try again.
+            </p>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
+
   return (
     <AppLayout
       title="Persona Chat"
       description="Chat with AI personas powered by advanced language models"
-      loading={isLoading}
       error={error}
       showHeader={true}
       showFooter={false}
@@ -90,22 +133,34 @@ export default function ChatPage() {
 
         {/* Chat Area */}
         <div className="flex flex-1 flex-col">
-          <div
-            className={`flex-1 transition-opacity duration-150 ${
-              isTransitioning ? "opacity-50" : "opacity-100"
-            }`}
-          >
-            <ChatWindow
-              messages={messages}
-              selectedPersona={selectedPersona}
-              isLoading={chatLoading}
-            />
-          </div>
-          <ChatInput
-            onSendMessage={handleSendMessage}
-            disabled={chatLoading}
-            isLoading={chatLoading}
-          />
+          {selectedPersona ? (
+            <>
+              <div
+                className={`flex-1 transition-opacity duration-150 h-[calc(100vh-190px)] ${
+                  isTransitioning ? "opacity-50" : "opacity-100"
+                }`}
+              >
+                <ChatWindow
+                  messages={messages}
+                  selectedPersona={selectedPersona}
+                  isLoading={chatLoading}
+                />
+              </div>
+              <ChatInput
+                onSendMessage={handleSendMessage}
+                disabled={chatLoading || !selectedPersona}
+                isLoading={chatLoading}
+              />
+            </>
+          ) : (
+            <div className="flex flex-1 items-center justify-center">
+              <div className="text-center">
+                <p className="text-muted-foreground">
+                  Select a persona to start chatting
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </AppLayout>

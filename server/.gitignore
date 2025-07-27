@@ -1,4 +1,8 @@
 node_modules
 dist
 .env
+
+/src/generated/prisma
 /prisma
+server.log
+pnpm-lock.yaml

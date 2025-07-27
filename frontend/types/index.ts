@@ -3,7 +3,11 @@ export interface Persona {
     name: string
     description: string
     systemPrompt: string
+    avatarUrl?: string
     isCustom?: boolean
+    createdAt?: string
+    updatedAt?: string
+    createdById?: string | null
 }
 
 export interface Message {
@@ -72,7 +76,7 @@ export interface UseChatReturn {
 
 export interface UsePersonasReturn {
     personas: Persona[]
-    selectedPersona: Persona
+    selectedPersona: Persona | null
     isLoading: boolean
     error: string | null
     selectPersona: (persona: Persona) => void
