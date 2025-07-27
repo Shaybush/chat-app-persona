@@ -1,2 +1,0 @@
-[2025-07-20 21:03:29] [INFO] Server is running on port 3001 {"port":3001,"environment":"development"}
-[2025-07-20 21:03:29] [INFO] Environment variables loaded {"NODE_ENV":"development","PORT":3001,"OPENAI_API_KEY":"Set ✅","ANTHROPIC_API_KEY":"Set ✅","GOOGLE_API_KEY":"Set ✅","MISTRAL_API_KEY":"Set ✅"}
