@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { chatAPI } from '@/lib/api'
 import { useLocalStorage } from './use-local-storage'
 import { CONFIG } from '@/lib/env'
 import type {
@@ -8,6 +7,7 @@ import type {
     UseChatReturn,
     SendMessageRequest
 } from '@/types'
+import { chatAPI } from '@/lib/auth/chat-api'
 
 export function useChat(personaId: string): UseChatReturn {
     // Local storage for chat history

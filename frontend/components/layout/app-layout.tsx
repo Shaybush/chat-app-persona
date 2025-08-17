@@ -6,8 +6,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
-import { systemAPI } from "@/lib/api";
 import { AdvancedLoadingDots } from "@/components/ui/advanced-loading-dots";
+import { systemAPI } from "@/lib/auth/system-api";
 
 type HealthStatus = "unknown" | "healthy" | "error";
 

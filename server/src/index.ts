@@ -1,6 +1,5 @@
 import express from 'express';
 import cors from 'cors';
-import helmet from 'helmet';
 import chatRoutes from './routes/chat';
 import healthRoutes from './routes/health';
 import personaRoutes from './routes/personas';
@@ -9,6 +8,7 @@ import { errorHandler, notFoundHandler } from './middlewares/errorHandler';
 import { env, logEnvStatus } from './config/env';
 import { handleDatabaseDisconnect, checkDatabaseConnection } from './config/database';
 import logger from './utils/logger';
+import helmet from 'helmet';
 
 const app: express.Application = express();
 const port = env.PORT;
