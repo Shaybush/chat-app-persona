@@ -1,11 +1,11 @@
 import { useState, useCallback, useEffect } from 'react'
-import { personaAPI } from '@/lib/api'
 import { useLocalStorage } from './use-local-storage'
 import type {
     Persona,
     CreatePersonaRequest,
     UsePersonasReturn
 } from '@/types'
+import { personaAPI } from '@/lib/auth/persona-api'
 
 export function usePersonas(): UsePersonasReturn {
     // Local storage for caching (will sync with server)

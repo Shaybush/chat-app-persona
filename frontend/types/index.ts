@@ -91,4 +91,12 @@ export interface UseLocalStorageReturn<T> {
     loading: boolean
     error: string | null
     clearValue: () => void
-} 
+}
+
+export interface HealthCheckResponse {
+    status: string;
+    timestamp: string;
+    uptime: number;
+    memoryUsage: NodeJS.MemoryUsage;
+    environment: string;
+}

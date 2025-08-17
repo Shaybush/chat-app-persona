@@ -1,6 +1,5 @@
-import { Persona } from '@prisma/client';
 import { prisma } from '../config/database';
-import { Persona as PersonaType } from '../types/Persona';
+import type { Persona, Persona as PersonaType } from '../types/Persona';
 import logger from '../utils/logger';
 
 export class PersonaRepository {

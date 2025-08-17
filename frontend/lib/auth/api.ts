@@ -1,11 +1,7 @@
 import axios, { AxiosInstance, AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios'
-import { CONFIG } from './env'
+import { CONFIG } from '../env'
 import type {
     APIResponse,
-    SendMessageRequest,
-    SendMessageResponse,
-    CreatePersonaRequest,
-    Persona
 } from '@/types'
 
 // Extend the AxiosRequestConfig to include our metadata
@@ -15,7 +11,7 @@ interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
     }
 }
 
-class ApiClient {
+export class ApiClient {
     private client: AxiosInstance
 
     constructor() {
@@ -80,7 +76,7 @@ class ApiClient {
         )
     }
 
-    private handleError<T>(error: AxiosError): APIResponse<T> {
+    protected handleError<T>(error: AxiosError): APIResponse<T> {
         if (error.response) {
             // Server responded with error status
             const responseData = error.response.data as any
@@ -106,7 +102,7 @@ class ApiClient {
         }
     }
 
-    private async request<T>(
+    protected async request<T>(
         method: 'GET' | 'POST' | 'PUT' | 'DELETE',
         url: string,
         data?: any
@@ -156,68 +152,4 @@ class ApiClient {
             return this.handleError<T>(error as AxiosError)
         }
     }
-
-    // Chat API methods
-    async sendMessage(request: SendMessageRequest): Promise<APIResponse<SendMessageResponse>> {
-        return this.request<SendMessageResponse>('POST', '/chat', request)
-    }
-
-    async getChatHistory(personaId: string): Promise<APIResponse<any>> {
-        return this.request('GET', `/chat/history/${personaId}`)
-    }
-
-    async clearChatHistory(personaId: string): Promise<APIResponse<any>> {
-        return this.request('DELETE', `/chat/history/${personaId}`)
-    }
-
-    // Persona API methods
-    async getPersonas(): Promise<APIResponse<Persona[]>> {
-        return this.request<Persona[]>('GET', '/personas')
-    }
-
-    async createPersona(request: CreatePersonaRequest): Promise<APIResponse<Persona>> {
-        return this.request<Persona>('POST', '/personas', request)
-    }
-
-    async updatePersona(id: string, updates: Partial<Persona>): Promise<APIResponse<Persona>> {
-        return this.request<Persona>('PUT', `/personas/${id}`, updates)
-    }
-
-    async deletePersona(id: string): Promise<APIResponse<any>> {
-        return this.request('DELETE', `/personas/${id}`)
-    }
-
-    // Health check
-    async healthCheck(): Promise<APIResponse<{
-        status: string;
-        timestamp: string;
-        uptime: number;
-        memoryUsage: NodeJS.MemoryUsage;
-        environment: string;
-    }>> {
-        return this.request('GET', '/health')
-    }
 }
-
-// Create singleton instance
-export const apiClient = new ApiClient()
-
-// Export individual API functions for convenience
-export const chatAPI = {
-    sendMessage: apiClient.sendMessage.bind(apiClient),
-    getChatHistory: apiClient.getChatHistory.bind(apiClient),
-    clearChatHistory: apiClient.clearChatHistory.bind(apiClient),
-}
-
-export const personaAPI = {
-    getPersonas: apiClient.getPersonas.bind(apiClient),
-    createPersona: apiClient.createPersona.bind(apiClient),
-    updatePersona: apiClient.updatePersona.bind(apiClient),
-    deletePersona: apiClient.deletePersona.bind(apiClient),
-}
-
-export const systemAPI = {
-    healthCheck: apiClient.healthCheck.bind(apiClient),
-}
-
-export default apiClient 
